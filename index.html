@@ -3,93 +3,152 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Generate Link Safelink + Shorten</title>
+  <title>Mengalihkan Link...</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #000000, #1f1f1f);
+      color: #fff;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 450px;
       text-align: center;
+      opacity: 1;
+      transition: opacity 1s ease-out;
     }
-    h2 {
+
+    .ring-spinner {
+      width: 45px;
+      height: 45px;
+      border: 5px solid #333;
+      border-top-color: #00f5ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-text {
+      font-size: 20px;
       margin-bottom: 10px;
+      animation: pulse 2s infinite;
     }
-    input, button, select {
-      width: 100%;
-      padding: 10px;
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .countdown-big {
+      font-size: 36px;
+      font-weight: bold;
       margin: 10px 0;
-      font-size: 16px;
+    }
+
+    .progress-bar {
+      width: 80%;
+      height: 10px;
+      background: #444;
       border-radius: 5px;
-      box-sizing: border-box;
+      overflow: hidden;
+      margin-top: 10px;
     }
-    input, select {
-      border: 1px solid #ccc;
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #00f5ff;
+      animation: fill 5s linear forwards;
     }
-    button {
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      cursor: pointer;
+
+    @keyframes fill {
+      from { width: 0%; }
+      to { width: 100%; }
     }
-    button:hover {
-      background-color: #0056b3;
+
+    .ads {
+      margin-top: 30px;
     }
-    #result {
-      margin-top: 20px;
-      word-break: break-all;
-      font-size: 14px;
+
+    .ads > div {
+      background: #fff;
+      color: #000;
+      width: 300px;
+      height: 250px;
+      line-height: 250px;
+      margin: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00000030;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Safelink Generator + Shortener</h2>
-    <input type="text" id="inputLink" placeholder="Masukkan URL asli">
-    <select id="shortener">
-      <option value="none">Tanpa Shorten</option>
-      <option value="tinyurl">Shorten via TinyURL</option>
-    </select>
-    <button onclick="generateLink()">Generate</button>
-    <div id="result"></div>
-  </div>
+
+  <div class="ring-spinner"></div>
+  <div class="status-text" id="statusText">Menghubungkan...</div>
+  <div class="countdown-big" id="countdown">5</div>
+  <div class="progress-bar"><div class="progress-fill"></div></div>
+
+  <div class="ads"><div>Iklan tampil di sini</div></div>
+
+  <!-- Suara notifikasi -->
+  <audio id="beep" preload="auto">
+    <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+  </audio>
 
   <script>
-    async function shortenURL(url) {
-      try {
-        const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
-        return await res.text();
-      } catch (e) {
-        alert('Gagal memendekkan URL. Gunakan link asli.');
-        return url;
-      }
+    function getParameterByName(name) {
+      const url = window.location.href;
+      const match = url.match(new RegExp('[?&]' + name + '=([^&]+)'));
+      return match ? decodeURIComponent(match[1]) : null;
     }
 
-    async function generateLink() {
-      const input = document.getElementById('inputLink').value.trim();
-      const method = document.getElementById('shortener').value;
-      if (!input) return alert('Masukkan URL terlebih dahulu');
+    const target = getParameterByName("go");
+    const beepSound = document.getElementById("beep");
+    const countdownEl = document.getElementById("countdown");
+    const statusText = document.getElementById("statusText");
 
-      let finalURL = input;
-      if (method === 'tinyurl') {
-        finalURL = await shortenURL(input);
-      }
+    const texts = [
+      "Menghubungkan...",
+      "Menyiapkan Link...",
+      "Tunggu Sebentar...",
+      "Mengalihkan ke tujuan..."
+    ];
 
-      const encoded = btoa(finalURL);
-      const resultURL = `https://aksesku.blogspot.com/p/safelink.html?go=${encoded}`;
-      document.getElementById('result').innerHTML = `<strong>Hasil:</strong><br><a href="${resultURL}" target="_blank">${resultURL}</a>`;
+    let textIndex = 0;
+    let timeLeft = 5;
+
+    if (!target) {
+      document.body.innerHTML = "<h2>Link tidak valid</h2>";
+    } else {
+      const decoded = atob(target);
+
+      const textChanger = setInterval(() => {
+        textIndex = (textIndex + 1) % texts.length;
+        statusText.textContent = texts[textIndex];
+      }, 1000);
+
+      const timer = setInterval(() => {
+        timeLeft--;
+        countdownEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          clearInterval(textChanger);
+          beepSound.play();
+          document.body.style.opacity = "0";
+          setTimeout(() => {
+            window.location.href = decoded;
+          }, 1000);
+        }
+      }, 1000);
     }
   </script>
+
 </body>
 </html>
