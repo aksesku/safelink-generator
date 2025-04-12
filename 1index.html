@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generate Link Safelink + Shorten</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 450px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    input, button, select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    input, select {
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      word-break: break-all;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Safelink Generator + Shortener</h2>
+    <input type="text" id="inputLink" placeholder="Masukkan URL asli">
+    <select id="shortener">
+      <option value="none">Tanpa Shorten</option>
+      <option value="tinyurl">Shorten via TinyURL</option>
+    </select>
+    <button onclick="generateLink()">Generate</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function shortenURL(url) {
+      try {
+        const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+        return await res.text();
+      } catch (e) {
+        alert('Gagal memendekkan URL. Gunakan link asli.');
+        return url;
+      }
+    }
+
+    async function generateLink() {
+      const input = document.getElementById('inputLink').value.trim();
+      const method = document.getElementById('shortener').value;
+      if (!input) return alert('Masukkan URL terlebih dahulu');
+
+      let finalURL = input;
+      if (method === 'tinyurl') {
+        finalURL = await shortenURL(input);
+      }
+
+      const encoded = btoa(finalURL);
+      const resultURL = `https://aksesku.blogspot.com/p/safelink.html?go=${encoded}`;
+      document.getElementById('result').innerHTML = `<strong>Hasil:</strong><br><a href="${resultURL}" target="_blank">${resultURL}</a>`;
+    }
+  </script>
+</body>
+</html>
